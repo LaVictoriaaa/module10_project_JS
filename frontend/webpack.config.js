@@ -8,6 +8,7 @@ module.exports = {
     output: {
         filename: 'app.js',
         path: path.resolve(__dirname, 'dist'),
+        publicPath: '/',
         clean: true,
         //to clean the /dist folder before each build.
     },

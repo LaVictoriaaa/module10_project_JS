@@ -1,0 +1,35 @@
+<div class="d-flex flex-column m-5 vh-100 container-layout">
+
+    <h1 class="text-primary-emphasis pb-4 mb-3" id="category-title">Создание дохода/расхода</h1>
+
+    <!-- CREATE BUDGET -->
+    <div class="categories d-flex flex-column gap-3 col-4">
+
+        <form action="" class="d-flex flex-column gap-2">
+
+          <select class="form-select px-3 category-input fs-15">
+            <option selected disabled>Тип...</option>
+            <option value="income">Доход</option>
+            <option value="expense">Расход</option>
+          </select>
+
+          <select class="form-select px-3 category-input fs-15">
+            <option selected disabled>Категория...</option>
+            <option value="income">категории доходов</option>
+            <option value="expense">категории расходов</option>
+          </select>
+
+            <input type="number" class="form-control px-3" placeholder="Сумма в $...">
+            <input type="date" class="form-control px-3" placeholder="Дата...">
+            <input type="text" class="form-control px-3" placeholder="Комментарий...">
+
+            <div class="buttons d-flex gap-2 fw-medium pt-2">
+                <button id="save" type="button" class="btn btn-success btn-sm px-3 py-2">Создать</button>
+                <button id="cancel" type="button" class="btn btn-danger btn-sm px-3 py-2">Отмена</button>
+            </div>
+        </form>
+    </div>
+    <!-- CREATE BUDGET -->
+
+</div>
+
