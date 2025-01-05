@@ -1,8 +1,12 @@
 import {Dashboard} from "./components/dashboard";
-import {Login} from "./components/login";
-import {SignUp} from "./components/sign-up";
+import {Login} from "./components/auth/login";
+import {SignUp} from "./components/auth/sign-up";
 import {getElement} from "bootstrap/js/src/util";
-import {Logout} from "./components/logout";
+import {Logout} from "./components/auth/logout";
+import {CategoryList} from "./components/categories/category-list";
+import {HttpUtils} from "./utils/http-utils";
+import {CategoryCreate} from "./components/categories/category-create";
+import {CategoryEdit} from "./components/categories/category-edit";
 
 export class Router {
     constructor() {
@@ -28,16 +32,9 @@ export class Router {
                 useLayout: false,
             },
             {
-                route: '/layout',
-                title: 'Страница',
-                filePathTemplate: '/templates/layout.html', //путь до кусочка html
-                load: () => {
-                }
-            },
-            {
                 route: '/sign-up',
                 title: 'Регистрация',
-                filePathTemplate: '/templates/sign-up.html',
+                filePathTemplate: '/templates/pages/auth/sign-up.html',
                 useLayout: false,
                 load: () => {
                     new SignUp(this.openNewRoute.bind(this));
@@ -46,7 +43,7 @@ export class Router {
             {
                 route: '/login',
                 title: 'Авторизация',
-                filePathTemplate: '/templates/login.html',
+                filePathTemplate: '/templates/pages/auth/login.html',
                 useLayout: false,
                 load: () => {
                     new Login(this.openNewRoute.bind(this));
@@ -63,46 +60,80 @@ export class Router {
             {
                 route: '/incomes',
                 title: 'Страница категории доходов',
-                filePathTemplate: '/templates/category-list.html',
+                filePathTemplate: '/templates/pages/categories/category-list.html',
                 useLayout: '/templates/layout.html',
-            },
-            {
-                route: '/incomes-edit',
-                title: 'Страница категории доходов',
-                filePathTemplate: '/templates/category-edit.html',
-                useLayout: '/templates/layout.html',
-            },
-            {
-                route: '/incomes-create',
-                title: 'Страница категории доходов',
-                filePathTemplate: '/templates/category-create.html',
-                useLayout: '/templates/layout.html',
+                load: () => {
+                    new CategoryList(this.openNewRoute.bind(this));
+                }
             },
             {
                 route: '/expenses',
                 title: 'Страница категории расходов',
-                filePathTemplate: '/templates/category-list.html',
+                filePathTemplate: '/templates/pages/categories/category-list.html',
                 useLayout: '/templates/layout.html',
-
+                load: () => {
+                    new CategoryList(this.openNewRoute.bind(this));
+                }
             },
+            {
+                route: '/incomes/create',
+                title: 'Страница категории доходов',
+                filePathTemplate: '/templates/pages/categories/category-create.html',
+                useLayout: '/templates/layout.html',
+                load: () => {
+                    new CategoryCreate(this.openNewRoute.bind(this));
+                }
+            },
+            {
+                route: '/expenses/create',
+                title: 'Страница категории расходов',
+                filePathTemplate: '/templates/pages/categories/category-create.html',
+                useLayout: '/templates/layout.html',
+                load: () => {
+                    new CategoryCreate(this.openNewRoute.bind(this));
+                }
+            },
+            {
+                route: '/incomes/edit',
+                title: 'Страница категории доходов',
+                filePathTemplate: '/templates/pages/categories/category-edit.html',
+                useLayout: '/templates/layout.html',
+                load: () => {
+                    new CategoryEdit(this.openNewRoute.bind(this));
+                }
+            },
+            {
+                route: '/expenses/edit',
+                title: 'Страница категории расходов',
+                filePathTemplate: '/templates/pages/categories/category-edit.html',
+                useLayout: '/templates/layout.html',
+                load: () => {
+                    new CategoryEdit(this.openNewRoute.bind(this));
+                }
+            },
+
+
             {
                 route: '/budget',
                 title: 'Страница доходов и расходов',
-                filePathTemplate: '/templates/budget.html',
+                filePathTemplate: '/templates/pages/budget/budget.html',
                 useLayout: '/templates/layout.html',
+                load: () => {
+
+                }
 
             },
             {
                 route: '/budget-create',
                 title: 'Страница создания дохода/расхода',
-                filePathTemplate: '/templates/budget-create.html',
+                filePathTemplate: '/templates/pages/budget/budget-create.html',
                 useLayout: '/templates/layout.html',
 
             },
             {
                 route: '/budget-edit',
                 title: 'Страница редактирования дохода/расхода',
-                filePathTemplate: '/templates/budget-edit.html',
+                filePathTemplate: '/templates/pages/budget/budget-edit.html',
                 useLayout: '/templates/layout.html',
 
             },
@@ -110,7 +141,7 @@ export class Router {
 
     }
 
-    initEvents() {
+    async initEvents() {
         window.addEventListener('DOMContentLoaded', this.activateRoute.bind(this));
         //чтобы у нас использовался контент класса Route, а не самого события 'DOMContentLoaded' мы добавляем .bind(this)
         //функцию мы не вызываем, а просто передаем
@@ -131,7 +162,6 @@ export class Router {
         history.pushState({}, '', url);
         //сюда могут попадать как url, так и event (из функции  initEvents()), поэтому лучше сделать 2 параметра
         await this.activateRoute(null, currentRoute);
-
     }
 
     async clickHandler(e) {
@@ -210,6 +240,7 @@ export class Router {
                     this.contentPageElement.innerHTML = await fetch(newRoute.useLayout).then(response => response.text());
                     //    ищем в layout блок content-layout, в который будем вставлять остальные template
                     contentBlock = document.getElementById('content-layout');
+                    this.activateMenuItem(newRoute); //используем только тогда, когда есть layout
 
                     // this.contentPageElement = document.getElementById('content-layout');
                 } else {
@@ -236,8 +267,48 @@ export class Router {
             // //после того, как переводим пользователя на другую страницу, то никаких действий не осуществляем
             // //можно еще добавлять return чтобы обезопасить от багов или сжирания ресурсов
         }
-
     }
 
+    activateMenuItem(route) {
+        document.querySelectorAll('.nav-link').forEach(item => {
+            const href = item.getAttribute('href'); //находим все href в панели сбоку
+            const categoryElement = document.getElementById('category');
+            const incomesLinkElement = document.getElementById('incomes');
+            const expensesLinkElement = document.getElementById('expenses');
+            const currentCategoryType = window.location.pathname.split('/')[1];
+
+            if ((route.route.includes(href) && href !== '/') || (route.route === '/' && href === '/')) {
+                item.classList.add('active');
+            }
+
+            categoryElement.onclick = function(e) {
+                categoryElement.classList.add('active');
+                categoryElement.nextElementSibling.classList.add('show');
+                categoryElement.classList.remove('rounded-2');
+                categoryElement.classList.add('category-radius');
+            };
+
+            if (window.location.pathname === '/incomes' || currentCategoryType === 'incomes' || window.location.pathname === '/expenses' || currentCategoryType === 'expenses') {
+                categoryElement.classList.add('active');
+                categoryElement.classList.remove('rounded-2');
+                categoryElement.classList.add('category-radius');
+                categoryElement.nextElementSibling.classList.add('show');
+                if (window.location.pathname === '/incomes' || currentCategoryType === 'incomes') {
+                    //проверяем currentCategoryType === 'incomes' потому что ссылка в строке выглядит так
+                    // http://localhost:9000/incomes/create, разбивает pathname на массив и берем первый элемент incomes,
+                    // без /
+                    incomesLinkElement.classList.add('active-category');
+                } else if (window.location.pathname === '/expenses' || currentCategoryType === 'expenses') {
+                    //проверяем currentCategoryType === 'expenses' потому что ссылка в строке выглядит так
+                    // http://localhost:9000/expenses/create, разбивает pathname на массив и берем первый элемент expenses,
+                    // без /
+                    expensesLinkElement.classList.add('active-category');
+                } else {
+                    incomesLinkElement.classList.remove('active-category');
+                    expensesLinkElement.classList.remove('active-category');
+                }
+            }
+        })
+    }
 
 }

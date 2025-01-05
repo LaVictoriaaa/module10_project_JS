@@ -1,7 +1,8 @@
 import config from "../config/config";
+import {AuthUtils} from "./auth-utils";
 
 export class HttpUtils {
-    static async request(url, method = "GET", body = null) {
+    static async request(url, method = "GET", useAuth = true, body = null) {
         const result = {
             error: false,
             response: null //result у нас изначально null и если будет ошибка, то в result так и останется null
@@ -16,6 +17,16 @@ export class HttpUtils {
                 'Accept': 'application/json',
             },
         };
+
+        //получаем token
+        let token = null;
+
+        if (useAuth) {
+            token = AuthUtils.getAuthInfo(AuthUtils.accessTokenKey);
+            if (token) {
+                params.headers['x-auth-token'] = token;
+            }
+        }
 
         //проверяем есть ли body (он присутствует при POST-запросах)
         if (body) {
@@ -40,42 +51,29 @@ export class HttpUtils {
 
         if (response.status < 200 || response.status >= 300) {
             result.error = true;
-//             //обрабатываем ошибку если нет токена (зашли с другого браузера или открыли
-//             // из вкладок и в localStorage токена нет) или он старый
-//             if (useAuth && response.status === 401) {
-//                 if (!token) {
-//                     //1 - токена нет
-//                     result.redirect = '/login';
-//                 } else {
-//                     //2 - токен устарел/невалидный (надо обновить)
-//                     const updateTokenResult = await AuthUtils.updateRefreshToken();
-//                     if (updateTokenResult) {
-//                         //если удалось получить refreshToken, то делаем запрос повторно
-//                         return this.request(url, method, useAuth, body);
-//                     } else {
-//                         result.redirect = '/login';
-//                     }
-//                 }
-//             }
+            //обрабатываем ошибку если нет токена (зашли с другого браузера или открыли
+            // из вкладок и в localStorage токена нет) или он старый
+            if (useAuth && response.status === 401) {
+                if (!token) {
+                    //1 - токена нет
+                    result.redirect = '/login';
+                    // console.log('1 - токена нет');
+                } else {
+                    //2 - токен устарел/невалидный (надо обновить)
+                    const updateTokenResult = await AuthUtils.updateRefreshToken();
+                    if (updateTokenResult) {
+                        //если удалось получить refreshToken, то делаем запрос повторно
+                        return this.request(url, method, useAuth, body);
+                    } else {
+                        console.log('2 - токен устарел/невалидный (надо обновить)');
+
+                        result.redirect = '/login';
+                    }
+                }
+            }
         }
 
         return result;
 
     }
-
-
-//
-//         //получаем token
-//         let token = null;
-//
-//         if (useAuth) {
-//             //достаем токен
-//             token = AuthUtils.getAuthInfo(AuthUtils.accessTokenKey);
-//             if (token) {
-//                 params.headers['authorization'] = token;
-//             }
-//         }
-//
-
-//
 }

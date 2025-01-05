@@ -1,7 +1,8 @@
-import {AuthUtils} from "../utils/auth-utils";
-import {HttpUtils} from "../utils/http-utils";
+import {AuthUtils} from "../../utils/auth-utils";
+import {HttpUtils} from "../../utils/http-utils";
 
-export class SignUp {
+
+export class Login {
     constructor(openNewRoute) {
         this.openNewRoute = openNewRoute;
 
@@ -10,13 +11,12 @@ export class SignUp {
             return this.openNewRoute('/');
         }
 
-        this.fullNameElement = document.getElementById('full-name');
         this.emailElement = document.getElementById('email');
         this.passwordElement = document.getElementById('password');
-        this.passwordRepeatElement = document.getElementById('password-repeat');
+        this.remeberMeElement = document.getElementById('remember-me');
 
 
-        document.getElementById('process-button').addEventListener('click', this.signUp.bind(this));
+        document.getElementById('process-button').addEventListener('click', this.login.bind(this));
         //фиксируем контекст, чтобы он не терялся
     }
 
@@ -25,13 +25,6 @@ export class SignUp {
         let isValid = true;
         //добавляем переменную, кот. будет возвращать функция, для того, чтобы в ф-ии login можно было
         //проверить валидна форма или нет
-
-        if (this.fullNameElement.value && this.fullNameElement.value.match(/^[A-ЯЁ][а-яё]+\s[A-ЯЁ][а-яё]+$/)) {
-            this.fullNameElement.nextElementSibling.classList.add('invalid-feedback');
-        } else {
-            this.fullNameElement.nextElementSibling.classList.remove('invalid-feedback');
-            isValid = false;
-        }
 
         if (this.emailElement.value && this.emailElement.value.match(/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/)) {
             //     if (this.emailElement.value && this.emailElement.value.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
@@ -48,56 +41,55 @@ export class SignUp {
             isValid = false;
         }
 
-        if (this.passwordRepeatElement.value && this.passwordRepeatElement.value === this.passwordElement.value) {
-            this.passwordRepeatElement.nextElementSibling.classList.add('invalid-feedback');
-        } else {
-            this.passwordRepeatElement.nextElementSibling.classList.remove('invalid-feedback');
-            isValid = false;
-        }
-
         return isValid;
     }
 
-    async signUp() {
+    async login() {
+        if (this.validateForm()) { //отправка запроса с новыми данными
 
-        if (this.validateForm()) {
-
-            const result = await HttpUtils.request('/signup', 'POST', {
-                name: this.fullNameElement.value.split(' ')[0],
-                lastName: this.fullNameElement.value.split(' ')[1],
+            const result = await HttpUtils.request('/login', 'POST', false, {
                 email: this.emailElement.value,
                 password: this.passwordElement.value,
-                passwordRepeat: this.passwordRepeatElement.value
+                rememberMe: this.remeberMeElement.checked
             });
+
+            // в ответ получаем это
+            // {
+            //     "tokens": {
+            //     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGl0bG9naWEucnUiLCJpYXQiOjE3MDUyNDExMTgsImV4cCI6MTcwNTI0MjAxOH0.CcK-9r4TU4757UkyGNiIdCoInkZXCRQ_-HY8kMiyTE8",
+            //         "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGl0bG9naWEucnUiLCJpYXQiOjE3MDUyNDExMTgsImV4cCI6MTcwNTMyNzUxOH0.FO_5hFqwA37vI-oRv1TV4NkbVUwTvKYMCVeL0So-B28"
+            // },
+            //     "user": {
+            //     "name": "Пользователь",
+            //     "lastName": "Айтилогии",
+            //     "id": 1
+            // }
+            // }
+
 
             console.log(result);
 
             //проверяем была ли ошибка или не было ответа или был ответ и отсутствовало одно из полей
-            if (!result.response.user) {
+            if (result.error || !result.response || (result.response && (!result.response.tokens || !result.response.user))) {
                 //проверяем проходят ли все необходимые поля
                 throw new Error(result.message);
                 // return;
             }
 
-            AuthUtils.setAuthInfo(null, null, {
-                id: result.response.user.id,
-                email: result.response.user.email,
+            // сохраняем полученные токены и инфу о пользователе в localStorage
+            AuthUtils.setAuthInfo(result.response.tokens.accessToken, result.response.tokens.refreshToken, {
                 name: result.response.user.name,
-                lastName: result.response.user.lastName
+                lastName: result.response.user.lastName,
+                id: result.response.user.id
             });
 
-            // localStorage.setItem('userInfo', JSON.stringify({
-            //     id: result.user.id,
-            //     email: result.user.email,
-            //     name: result.user.name,
-            //     lastName: result.user.lastName
-            // }));
 
-            this.openNewRoute('/login');
+            // //window.location.href = "/"; - такой подход мы не можем использовать, потому что это
+            // будет собирать приложение заново, т.е. производить полноценный редирект. Для избегания этого нужно
+            // использовать ф-ию openNewRoute из router.js
+            this.openNewRoute('/');
 
         }
-
     }
-
 
 }
