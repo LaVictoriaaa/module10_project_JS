@@ -56,8 +56,14 @@ export class HttpUtils {
             if (useAuth && response.status === 401) {
                 if (!token) {
                     //1 - токена нет
+                    console.log('1 - токена нет');
+                    //если нет токена, то возвращаем result с полем redirect
+                    //выше мы писали, что у нас
+                    // result = {
+                    // error: false,
+                    // response: null
+                    //};
                     result.redirect = '/login';
-                    // console.log('1 - токена нет');
                 } else {
                     //2 - токен устарел/невалидный (надо обновить)
                     const updateTokenResult = await AuthUtils.updateRefreshToken();
@@ -66,7 +72,6 @@ export class HttpUtils {
                         return this.request(url, method, useAuth, body);
                     } else {
                         console.log('2 - токен устарел/невалидный (надо обновить)');
-
                         result.redirect = '/login';
                     }
                 }

@@ -43,6 +43,9 @@ export class CategoryEdit {
 
     async getCategory(id) {
         const result = await HttpUtils.request('/categories/' + this.currentCategory + '/' + id, 'GET', true);
+        if (result.redirect) {
+            return this.openNewRoute(result.redirect);
+        }
 
         // если ошибка
         // {

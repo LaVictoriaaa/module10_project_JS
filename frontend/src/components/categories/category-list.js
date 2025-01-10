@@ -31,6 +31,9 @@ export class CategoryList {
 
     async getCategories(typeCategory) {
         const result = await HttpUtils.request('/categories' + typeCategory, 'GET', true);
+        if (result.redirect) {
+            return this.openNewRoute(result.redirect);
+        }
 
         // Получаем ответ в виде [
         // { "id": 1, "title": "Депозиты" },

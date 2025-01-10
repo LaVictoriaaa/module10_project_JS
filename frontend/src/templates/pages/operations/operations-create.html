@@ -1,0 +1,47 @@
+<div class="d-flex flex-column m-5 vh-100 container-layout">
+
+    <h1 class="text-primary-emphasis pb-4 mb-3" id="category-title">Создание дохода/расхода</h1>
+
+    <!-- CREATE BUDGET -->
+    <div class="categories d-flex flex-column gap-3 col-4">
+
+        <form class="d-flex flex-column gap-2">
+
+            <select class="form-select px-3 category-input fs-15" id="category-type">
+                <option selected value=" " disabled>Тип...</option>
+                <option value="income">Доход</option>
+                <option value="expense">Расход</option>
+            </select>
+            <div class="invalid-feedback text-danger small-text" id="category-type-error">
+                Выберите тип поля
+            </div>
+
+            <select class="form-select px-3 category-input fs-15" id="category-family" disabled>
+                <option selected disabled>Категория...</option>
+<!--                <option value="income">Категории доходов</option>-->
+<!--                <option value="expense">Категории расходов</option>-->
+            </select>
+            <div class="invalid-feedback text-danger small-text">
+                Категория не соответствует типу
+            </div>
+
+            <input type="number" class="form-control px-3" id="category-sum" placeholder="Сумма в $...">
+            <div class="invalid-feedback text-danger small-text">
+                Введите сумму БЕЗ знака доллар
+            </div>
+            <input type="date" class="form-control px-3" id="category-date" placeholder="Дата...">
+            <div class="invalid-feedback text-danger small-text">
+                Введите дату в формате DD.MM.YYYY
+            </div>
+            <input type="text" class="form-control px-3" id="category-comment" placeholder="Комментарий...">
+
+            <div class="buttons d-flex gap-2 fw-medium pt-2">
+                <button id="save-button" type="button" class="btn btn-success btn-sm px-3 py-2">Создать</button>
+                <button id="cancel-button" type="button" class="btn btn-danger btn-sm px-3 py-2">Отмена</button>
+            </div>
+        </form>
+    </div>
+    <!-- CREATE BUDGET -->
+
+</div>
+

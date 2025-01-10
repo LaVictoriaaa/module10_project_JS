@@ -45,11 +45,12 @@ module.exports = {
                 //что и куда копируем
                 {from: "./src/templates", to: "templates"},
                 {from: "./node_modules/bootstrap/dist/css/bootstrap.css", to: "css"},
-                // {from: "./node_modules/bootstrap/dist/css/*.css", to: "css"},
                 {from: "./node_modules/bootstrap/dist/js/bootstrap.bundle.js", to: "js"},
-                // {from: "./node_modules/bootstrap/dist/js/*.js", to: "js"},
-
-
+                {from: "./node_modules/jquery/dist/jquery.js", to: "js"},
+                {from: "./node_modules/datatables.net/js/dataTables.js", to: "js"},
+                {from: "./node_modules/moment/min/moment.min.js", to: "js"},
+                {from: "./node_modules/moment/locale/ru.js", to: "js/moment-ru-locale.js"},
+                {from: "./node_modules/chart.js/dist/chart.js", to: "js"}
             ],
         }),
     ],

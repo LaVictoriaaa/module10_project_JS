@@ -1,0 +1,31 @@
+<div class="d-flex flex-column m-5 vh-100 container-layout">
+
+    <h1 class="text-primary-emphasis pb-4 mb-3" id="category-title">Редактирование дохода/расхода</h1>
+
+    <!-- CREATE BUDGET -->
+    <div class="categories d-flex flex-column gap-3 col-4">
+
+        <form class="d-flex flex-column gap-2">
+
+            <input type="text" class="form-control px-3" id="operation-type">
+            <div class="invalid-feedback text-danger small-text">
+                Поле может содержать только слова "Доход" или "Расход"
+            </div>
+            <input type="text" class="form-control px-3" id="operation-category">
+            <div class="invalid-feedback text-danger small-text">
+                Поле может содержать только русские буквы. Начинаться с пробела слово не может!
+            </div>
+            <input type="number" class="form-control px-3" id="operation-sum">
+            <input type="date" class="form-control px-3" id="operation-date">
+            <input type="text" class="form-control px-3" placeholder="Комментарий..." id="operation-comment">
+
+            <div class="buttons d-flex gap-2 fw-medium pt-2">
+                <button id="update-button" type="button" class="btn btn-success btn-sm px-3 py-2">Создать</button>
+                <button id="cancel-button" type="button" class="btn btn-danger btn-sm px-3 py-2">Отмена</button>
+            </div>
+        </form>
+    </div>
+    <!-- CREATE BUDGET -->
+
+</div>
+

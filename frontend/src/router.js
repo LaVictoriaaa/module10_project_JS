@@ -7,6 +7,9 @@ import {CategoryList} from "./components/categories/category-list";
 import {HttpUtils} from "./utils/http-utils";
 import {CategoryCreate} from "./components/categories/category-create";
 import {CategoryEdit} from "./components/categories/category-edit";
+import {OperationsList} from "./components/operations/operations-list";
+import {OperationsCreate} from "./components/operations/operations-create";
+import {OperationsEdit} from "./components/operations/operations-edit";
 
 export class Router {
     constructor() {
@@ -23,7 +26,15 @@ export class Router {
                 useLayout: '/templates/layout.html',
                 load: () => {
                     new Dashboard();
-                }
+                },
+                scripts: [
+                    'jquery.js',
+                    // 'dataTables.js',
+                    'moment.min.js',
+                    // 'moment-ru-locale.js'
+                    'chart.js'
+                ]
+
             },
             {
                 route: '/404',
@@ -111,30 +122,38 @@ export class Router {
                     new CategoryEdit(this.openNewRoute.bind(this));
                 }
             },
-
-
             {
-                route: '/budget',
+                route: '/operations',
                 title: 'Страница доходов и расходов',
-                filePathTemplate: '/templates/pages/budget/budget.html',
+                filePathTemplate: '/templates/pages/operations/operations.html',
                 useLayout: '/templates/layout.html',
                 load: () => {
-
+                    new OperationsList(this.openNewRoute.bind(this));
+                },
+                scripts: [
+                    'jquery.js',
+                    // 'dataTables.js',
+                    'moment.min.js',
+                ]
+            },
+            {
+                route: '/operations/create',
+                title: 'Страница создания дохода/расхода',
+                filePathTemplate: '/templates/pages/operations/operations-create.html',
+                useLayout: '/templates/layout.html',
+                load: () => {
+                    new OperationsCreate(this.openNewRoute.bind(this));
                 }
 
             },
             {
-                route: '/budget-create',
-                title: 'Страница создания дохода/расхода',
-                filePathTemplate: '/templates/pages/budget/budget-create.html',
-                useLayout: '/templates/layout.html',
-
-            },
-            {
-                route: '/budget-edit',
+                route: '/operations/edit',
                 title: 'Страница редактирования дохода/расхода',
-                filePathTemplate: '/templates/pages/budget/budget-edit.html',
+                filePathTemplate: '/templates/pages/operations/operations-edit.html',
                 useLayout: '/templates/layout.html',
+                load: () => {
+                    new OperationsEdit(this.openNewRoute.bind(this));
+                }
 
             },
         ]
@@ -202,12 +221,12 @@ export class Router {
         if (oldRoute) {
             const currentRoute = this.routes.find(item => item.route === oldRoute);
 
-            //удаляем стили у предыдущего роута
-            if (currentRoute.styles && currentRoute.styles.length > 0) {
-                currentRoute.styles.forEach(style => {
-                    document.querySelector(`link[href='/css/${style}']`).remove();
-                });
-            }
+            // //удаляем стили у предыдущего роута
+            // if (currentRoute.styles && currentRoute.styles.length > 0) {
+            //     currentRoute.styles.forEach(style => {
+            //         document.querySelector(`link[href='/css/${style}']`).remove();
+            //     });
+            // }
 
             //удаляем скрипты у предыдущего роута
             if (currentRoute.scripts && currentRoute.scripts.length > 0) {
@@ -225,7 +244,16 @@ export class Router {
         const newRoute = this.routes.find(item => item.route === urlRoute);
 
         if (newRoute) {
-            //на всякий случай проверяем есть ли title
+            if (newRoute.scripts && newRoute.scripts.length > 0) {
+                newRoute.scripts.forEach(file => {
+                    const script = document.createElement('script');
+                    script.src = '/js/' + file;
+                    script.onload = () => {};
+                    document.body.appendChild(script);
+                });
+            }
+
+                //на всякий случай проверяем есть ли title
             if (newRoute.title) {
                 this.titlePageElement.innerText = newRoute.title + ' | Lumincoin Finance ';
             }

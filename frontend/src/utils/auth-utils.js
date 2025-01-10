@@ -52,6 +52,15 @@ export class AuthUtils {
                 },
                 body: JSON.stringify({refreshToken: refreshToken})
             });
+
+            // получаем ответ в виде
+            //{
+            // "tokens": {
+            //  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGl0bG9naWEucnUiLCJpYXQiOjE3MzYxNTczNDEsImV4cCI6MTczNjE2NDU0MX0.OEGMao_lqNf7jRUqXKZAVPLz-ds3jsk20S-9C3E6CRQ",
+            //  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGl0bG9naWEucnUiLCJpYXQiOjE3MzYxNTczNDEsImV4cCI6MTczNjI0Mzc0MX0.9oqJa1ETW1o42C7gvsDwq0PhFvhFTBy3mVsqf03Ixq8"
+            //  }
+            // }
+
             if (response && response.status === 200) {
                 //если ответ есть, то преобразовываем JSON
                 const tokens = await response.json();

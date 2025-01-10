@@ -45,7 +45,6 @@ export class CategoryCreate {
         }
 
         return isValid;
-
     }
 
     async saveCategory(e) {
@@ -59,6 +58,9 @@ export class CategoryCreate {
 
             const result = await HttpUtils.request('/categories/' + this.currentCategory, 'POST', true, createData);
             //запрос уходит на http://localhost:3000/api/categories/income или expense без буквы s
+            if (result.redirect) {
+                return this.openNewRoute(result.redirect);
+            }
 
             //проверяем была ли ошибка или не было поля response (ответ) или был ответ и (ошибка и нет поля фрилансеры)
             if (result.error || !result.response || (result.response && result.response.error)) {
