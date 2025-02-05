@@ -1,12 +1,14 @@
 import moment from "moment";
 import {HttpUtils} from "../utils/http-utils";
-import {Chart} from "chart.js";
+// import {Chart} from "chart.js";
+import Chart from 'chart.js/auto'
 
 export class Dashboard {
     constructor(openNewRoute) {
         this.openNewRoute = openNewRoute; //получаем openNewRoute
         this.currentRoute = window.location.pathname;
         console.log(this.currentRoute); // /operations
+        this.allOperations = [];
 
         this.id = window.location.pathname.split('/')[1];
         //строка делится на массив из трех элементов, нам нужен 1-ый
@@ -46,8 +48,6 @@ export class Dashboard {
 
         let now = currentYear + '-' + currentMonth + '-' + currentDay;
         let lastYear = currentYear - 1 + '-' + currentMonth + '-' + currentDay;
-
-        // console.log(now)
 
         function deleteActiveClass(btn) {
             for (let i = 0; i < allBtns.length; i++) {
@@ -145,9 +145,8 @@ export class Dashboard {
         //     "category": "Жилье"
         //   }
         // ]
-        console.log(result);
         //result выглядит так = {error: false, response: Array(7)}
-        console.log(result.response);
+
         //result.response выглядит так = [
         // {id: 3, type: 'expense', amount: 250, date: '2022-09-13', comment: 'Оплата квартиры 2', …}
         // {id: 2, type: 'expense', amount: 2500, date: '2022-09-12', comment: 'Оплата квартиры', …}
@@ -175,46 +174,145 @@ export class Dashboard {
             return alert('Возникла ошибка при запросе категории. Обратитесь в поддержку!');
         }
 
-        // this.showOperations(result.response);
+        this.allOperations = result.response;
+        this.getCount();
     }
 
-    showCharts () {
+    getCount() {
+        const categoryIncomeArray = [];
+        const categoryExpenseArray = [];
 
-        // let myChart = new Chart(ctx, {
-        //     type: 'bar',
-        //     data: stars,
-        //     backgroundColor: [
-        //         "rgba(255, 99, 132, 0.2)",
-        //         "rgba(54, 162, 235, 0.2)",
-        //         "rgba(255, 206, 86, 0.2)",
-        //         "rgba(75, 192, 192, 0.2)",
-        //         "rgba(153, 102, 255, 0.2)"
-        //     ]
-        //     options: {
-        //         maintainAspectRatio: false,
-        //         responsive: false
-        //     }
-        // })
+        if (this.allOperations && this.allOperations.length > 0) {
 
-        // const configIncomes = {
-        //     type: 'pie',
-        //     data: data,
-        //     options: {
-        //         responsive: true,
-        //         plugins: {
-        //             legend: {
-        //                 position: 'top',
-        //             },
-        //             title: {
-        //                 display: true,
-        //                 text: 'Chart.js Pie Chart'
-        //             }
-        //         }
-        //     },
-        // };
+            // определяем типа операции из бюджета
+            this.allOperations.forEach(budget => {
 
+                if (budget.type === 'income') {
+                    categoryIncomeArray.push(budget);
+                }
+                if (budget.type === 'expense') {
+                    categoryExpenseArray.push(budget);
+                }
+            })
+        }
 
+        // Метод reduce() применяет функцию reducer к каждому элементу массива (слева-направо),
+        // возвращая одно результирующее значение.
+        // т.к. категорий может быть много, то суммируем их значения
+        const expensesByCategory = categoryExpenseArray.reduce((result, elem) => {
+            result[elem.category] ? result[elem.category] = result[elem.category] + elem.amount : result[elem.category] = elem.amount
+            return result;
+        }, {})
+
+        const incomeByCategory = categoryIncomeArray.reduce((result, elem) => {
+            result[elem.category] ? result[elem.category] = result[elem.category] + elem.amount : result[elem.category] = elem.amount
+            return result;
+        }, {})
+
+        this.getIncomeChart(incomeByCategory);
+        this.getExpensesChart(expensesByCategory);
     }
 
+    getIncomeChart(incomeByCategory) {
+        const incomeError = document.getElementById('income-error');
 
+        // Object.keys(obj) возвращает массив ключей, если его нет, то показываем ошибку
+        if (!Object.keys(incomeByCategory).length) {
+            incomeError.style.display = 'block';
+        } else {
+            incomeError.style.display = 'none';
+        }
+
+        // в данном случае this это incomeByCategory. this.one — это свойство объекта incomeByCategory, оно
+        // используется для хранения экземпляра графика, созданного с помощью библиотеки Chart.js.
+        // В строке if (this.one) { this.one.destroy(); } проверяется, существует ли уже график (т.е. был ли ранее
+        // создан экземпляр Chart и сохранен в this.one). Если он существует,
+        // вызывается метод destroy(), который уничтожает текущий график перед созданием нового.
+        // Это необходимо для предотвращения наложения старого графика на новый и для освобождения ресурсов.
+        if (this.one) {
+            this.one.destroy();
+
+        }
+
+        let category = [];
+        let amount = [];
+
+        // превращаем массив в строку
+        const incomeCategory = JSON.stringify(incomeByCategory);
+
+        JSON.parse(incomeCategory, (key, value) => {
+            if (key) {
+                category.push(key);
+            }
+            if (typeof value === 'number') {
+                amount.push(value);
+            }
+        });
+
+        const income = document.getElementById('income-chart');
+
+        this.one = new Chart(income, {
+            type: 'pie',
+            data: {
+                labels: category,
+                datasets: [{
+                    label: 'Доходы',
+                    data: amount,
+                    borderWidth: 1
+                }]
+            },
+            plugins: {
+                colors: {
+                    enabled: false
+                }
+            }
+        });
+    }
+
+    getExpensesChart(expensesByCategory) {
+        const expenseError = document.getElementById('expense-error');
+
+        if (!Object.keys(expensesByCategory).length) {
+            expenseError.style.display = 'block';
+        } else {
+            expenseError.style.display = 'none';
+        }
+
+        if (this.two) {
+            this.two.destroy();
+        }
+
+        let category = [];
+        let amount = [];
+
+        const expensesCategory = JSON.stringify(expensesByCategory);
+
+        JSON.parse(expensesCategory, (key, value) => {
+            if (key) {
+                category.push(key);
+            }
+            if (typeof value === 'number') {
+                amount.push(value);
+            }
+        });
+
+        const expense = document.getElementById('expense-chart');
+
+        this.two = new Chart(expense, {
+            type: 'pie',
+            data: {
+                labels: category,
+                datasets: [{
+                    label: 'Расходы',
+                    data: amount,
+                    borderWidth: 1
+                }]
+            },
+            plugins: {
+                colors: {
+                    enabled: false
+                }
+            }
+        });
+    }
 }

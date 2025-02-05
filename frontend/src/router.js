@@ -1,15 +1,15 @@
 import {Dashboard} from "./components/dashboard";
 import {Login} from "./components/auth/login";
 import {SignUp} from "./components/auth/sign-up";
-import {getElement} from "bootstrap/js/src/util";
 import {Logout} from "./components/auth/logout";
 import {CategoryList} from "./components/categories/category-list";
-import {HttpUtils} from "./utils/http-utils";
 import {CategoryCreate} from "./components/categories/category-create";
 import {CategoryEdit} from "./components/categories/category-edit";
 import {OperationsList} from "./components/operations/operations-list";
 import {OperationsCreate} from "./components/operations/operations-create";
 import {OperationsEdit} from "./components/operations/operations-edit";
+import {AuthUtils} from "./utils/auth-utils";
+import {HttpUtils} from "./utils/http-utils";
 
 export class Router {
     constructor() {
@@ -27,14 +27,6 @@ export class Router {
                 load: () => {
                     new Dashboard();
                 },
-                scripts: [
-                    'jquery.js',
-                    // 'dataTables.js',
-                    'moment.min.js',
-                    // 'moment-ru-locale.js'
-                    'chart.js'
-                ]
-
             },
             {
                 route: '/404',
@@ -130,11 +122,6 @@ export class Router {
                 load: () => {
                     new OperationsList(this.openNewRoute.bind(this));
                 },
-                scripts: [
-                    'jquery.js',
-                    // 'dataTables.js',
-                    'moment.min.js',
-                ]
             },
             {
                 route: '/operations/create',
@@ -144,7 +131,6 @@ export class Router {
                 load: () => {
                     new OperationsCreate(this.openNewRoute.bind(this));
                 }
-
             },
             {
                 route: '/operations/edit',
@@ -154,7 +140,6 @@ export class Router {
                 load: () => {
                     new OperationsEdit(this.openNewRoute.bind(this));
                 }
-
             },
         ]
 
@@ -269,8 +254,6 @@ export class Router {
                     //    ищем в layout блок content-layout, в который будем вставлять остальные template
                     contentBlock = document.getElementById('content-layout');
                     this.activateMenuItem(newRoute); //используем только тогда, когда есть layout
-
-                    // this.contentPageElement = document.getElementById('content-layout');
                 } else {
                     this.contentPageElement = document.getElementById('content');
                 }
@@ -337,6 +320,32 @@ export class Router {
                 }
             }
         })
+
+        this.showProfileName();
     }
 
+    showProfileName() {
+        const userInfo = AuthUtils.getUserInfo();
+        const accessToken = localStorage.getItem(AuthUtils.accessTokenKey);
+        if (userInfo && accessToken) {
+            document.getElementById('profile-name').innerText = userInfo.name + ' ' + userInfo.lastName;
+            this.getBalance();
+        }
+    }
+
+    async getBalance() {
+        const result = await HttpUtils.request('/balance', 'GET', true);
+
+        // проверяем была ли ошибка или не было поля response (ответ) или был ответ и (ошибка и нет поля фрилансеры)
+        if (result.error || !result.response) {
+            console.log(result.error);
+            return alert('Возникла ошибка при запросе баланса. Обратитесь в поддержку!');
+        }
+
+        this.showBalance(result.response.balance);
+    }
+
+    showBalance(balance) {
+        document.getElementById('balance').innerText = balance + '$';
+    }
 }
